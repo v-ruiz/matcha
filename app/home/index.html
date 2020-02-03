@@ -1,0 +1,88 @@
+﻿<link href="home/index.css" rel="stylesheet" />
+<div class="home-container container">
+	<p>{{suggestions[0].city}}</p>
+	<div ng-show="user.city" class="image-nearby-container container">
+		<h1 class="nearby-title"> Des profils qui peuvent vous intéresser ...  </h1>
+		<div class="row">
+			<p class="filter-title"> Filtre  : </p>
+			<div class="filter-container col-md-3 col-sm-6 col-xs-6">
+				<span class="filter-name"><img class="filter-img" src="../content/images/placeholder.png"/>Position</span>
+				<ui-select  ng-model="locationSelect.selected.value">
+					<ui-select-match>
+						<span ng-bind="$select.selected.city"></span>
+					</ui-select-match>
+					<ui-select-choices repeat="c in (location | filter: $select.search) track by c.id">
+						<span ng-bind="c.city"></span>
+					</ui-select-choices>
+				</ui-select>
+			</div>
+			<div class="filter-container col-md-3 col-sm-6 col-xs-6">
+				<span class="filter-name"><img class="filter-img" src="../content/images/calendar.png"/>Age</span>
+				<rzslider
+						rz-slider-model="sliderAge.min"
+						rz-slider-high="sliderAge.max"
+						rz-slider-options="sliderAge.options"></rzslider>
+			</div>
+			<div class="filter-container col-md-3 col-sm-6 col-xs-6">
+				<span class="filter-name"><img class="filter-img" src="../content/images/hashtag.png"/>Tags </span>
+				<ui-select multiple ng-model="multipleTag.tags" ng-disabled="disabled">
+					<ui-select-match placeholder="choisissez des tags...">{{$item}}</ui-select-match>
+					<ui-select-choices repeat="t in (tags | filter:$select.search)">
+						{{t}}
+					</ui-select-choices>
+				</ui-select>
+			</div>
+			<div class="filter-container col-md-3 col-sm-6 col-xs-6">
+				<span class="filter-name"><img class="filter-img" src="../content/images/star.png"/>Popularite</span>
+				<rzslider
+						rz-slider-model="sliderPopularity.min"
+						rz-slider-high="sliderPopularity.max"
+						rz-slider-options="sliderPopularity.options"></rzslider>
+			</div>
+		</div>
+		<div class="">
+			<p class="result-title col-md-6"> {{suggestion.length}} profile(s)  : </p>
+			<div class="tri-title col-md-3"><span>Trier par :</span>
+				<ui-select ng-model="triSelect.selected.value">
+					<ui-select-match>
+						<span ng-bind="$select.selected.name"></span>
+					</ui-select-match>
+					<ui-select-choices repeat="t in (triSelect | filter: $select.search)">
+						<span ng-bind="t.name"></span>
+					</ui-select-choices>
+				</ui-select>
+			</div>
+			<div class="result-title" ng-if="suggestion.length == 0">
+				Aucun résultat disponible, completer votre profil pour avoir des suggestions
+			</div>
+			<div ng-repeat="s in suggestion | orderBy: (selected.value.value == 'Aucun') ? undefined : triSelect.selected.value.value | filter: searchQuery | citySelected:locationSelect.selected.value.city | tagsSelected:multipleTag.tags  | ageRange:sliderAge.min:sliderAge.max | popRange:sliderPopularity.min:sliderPopularity.max" class="suggestion col-md-3 col-sm-6 col-xs-12">
+				<div class="user-info-container">
+					<p class="col-md-6 col-sm-6 col-xs-12 user-info user-name"> {{s.first_name | capitalize}}</p>
+					<p class="col-md-6 col-sm-6 col-xs-12 user-info user-age"> {{s.birth_date | age}} ans</p>
+					<p class="col-md-6 col-sm-6 col-xs-12 user-info user-city">{{s.city}}</p>
+					<p class="col-md-6 col-sm-6 col-xs-12 user-info user-gender"><img ng-src="{{s.gender | gender}}"></p>
+					<svg class='img-state' xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="20px" height="20px" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 120.65 120.65" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full">
+                        <g id="Warstwa_x0020_1">
+                        <metadata id="CorelCorpID_0Corel-Layer"/>
+                        <circle ng-class="{disconnected: s.actif == 0}" class="fil0" cx="60.325" cy="60.325" r="60.325"/>
+                        </g>
+                    </svg>
+					<div class="state-user actif-user" ng-show="s.actif == 1">Connecté</div>
+					<div class="state-user offline-user" ng-show="s.actif == 0">Déconnecté</div>
+					<div class="state-since" ng-show="s.actif == 1"><time class="timeAgo">{{ s.active_since | timeAgo }}</time></div>
+					<div class='state-since' ng-show="s.offline_since && s.actif == 0"><time class="timeAgo">{{ s.offline_since | timeAgo }}</time></div>
+					<div class="state-since" ng-show="!s.offline_since && s.actif == 0"> Jamais connecté </div>
+				</div>
+				<div class="img-wrapper">
+					<img class="img-user" ng-src="../{{s.photo_link}}"/>
+				</div>
+				<div class="action-btn-container col-md-12 col-sm-12 col-xs-12">
+					<a ui-sref="show({id_user: s.id_user})" ng-class="{'col-xs-4': s.connected == 1, 'col-xs-6': s.connected == 0}" class="action-btn view-btn"><img src="../content/images/eye.png"></a>
+					<button ng-if="s.matched == 1" ng-click="UnLikeUser(this,s.id_user, s.first_name)" ng-class="{'col-xs-4': s.connected == 1, 'col-xs-6': s.connected == 0}" class="action-btn flash-btn"><img src="../content/images/flash-red-m.png"></button>
+					<button ng-if="s.matched == 0" ng-click="LikeUser(this, s.id_user, s.first_name)" ng-class="{'col-xs-4': s.connected == 1, 'col-xs-6': s.connected == 0}" class="action-btn flash-btn"><img ng-src="../content/images/lightning.png"></button>
+					<a ng-if="s.connected == 1" ui-sref="chat({id_user: s.id_user})" class="action-btn view-btn col-xs-4"><img src="../content/images/chat.png"></a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

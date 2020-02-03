@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Matcha</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-select/0.20.0/select.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ng-tags-input/3.1.1/ng-tags-input.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="app-content/app.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-bootstrap-datetimepicker/1.1.3/css/datetimepicker.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angularjs-slider/5.8.7/rzslider.min.css" />
+    <link rel="stylesheet" href="external-modules/autocomplete/autocomplete.css" />
+</head>
+<body ng-controller="AppCtrl">
+    <header>
+        <nav role="navigation" class="navbar navbar-container navbar-default navbar-static-top">
+            <div class="container nv-container">
+                <div class="navbar-header">
+                    <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" ui-sref="home"><img class="brand-img" src="../content/images/matcha.png" /></a>
+                    <ul class="nav navbar-nav">
+                        <li ng-class="{active: activeTab === 'search'}" class="nav-item link-bar">
+                            <a class="nav-link" ui-sref="search"><img class="search-icon" src="../content/images/worker.png" /></a>
+                        </li>
+                        <li ng-class="{active: activeTab === 'chat'}" class="nav-item link-bar">
+                            <a class="nav-link" ui-sref="chat"><img class="chat-icon" src="../content/images/chat.png" /></a>
+                        </li>
+                        <li class="dropdown stalkers">
+                            <button class="btn btn-primary dropdown-toggle btn-stalker" type="button" ng-click="toggledStalker(!statusStalker.isopen)" data-toggle="dropdown"><img class="stalker-img" src="../content/images/eye.png" /><span ng-show="nbStalkers > 0" class="badge stalker-badge">{{nbStalker}}</span></button>
+                            <ul role="menu" class="dropdown-menu menu-stalker">
+                                <div ng-style="{background: {true: '#f9edca',false:'#ffffff'}[n.new == true]}" ng-repeat="s in stalkers" class="stalker-item row">
+                                    <div class="col-md-2 col-sm-2 col-xs-2 col-author_img-wrapper">
+                                        <img class="stalker-author-img" ng-src="../{{s.author_img}}" />
+                                    </div>
+                                    <div class="col-md-10 col-sm-10 col-xs-10 author-informations">
+                                        <span class="author-information">
+                                            <a class="author_first_name" ui-sref="show({id_user: h.id_author})" > {{s.author_first_name}}
+                                            </a> a consulté votre profil  </span>
+                                        <span class="stalker-time">{{s.created_at | timeAgo}} </span>
+                                    </div>
+                                </div>
+                                <div class="dropdown-footer">
+                                    <a class="nav-link" ui-sref="stalkers"> Voir tout </a>
+                                </div>
+                            </ul>
+
+                            <ul ng-show="stalkers.length == 0" role="menu" class="dropdown-menu menu-stalker">
+                                <span>History Empty</span>
+                            </ul>
+                        </li>
+                        <li class="dropdown notification">
+                            <button class="btn btn-primary dropdown-toggle btn-notification" type="button" ng-click="toggled(!status.isopen)" data-toggle="dropdown"><img class="notification-img" src="../content/images/notification.png"><span ng-show="nbNewNotifications > 0" class="badge notification-badge">{{nbNewNotifications}}</span></button>
+                            <ul ng-show="nbNotifications > 0 || notifications.length > 0" role="menu" class="dropdown-menu menu-notification">
+                                <div ng-style="{background: {true: '#f9edca',false:'#ffffff'}[n.new == true]}" ng-repeat="n in notifications" class="notification-item row">
+                                    <div class="col-md-2 col-sm-2 col-xs-2 col-author_img-wrapper">
+                                        <img class="notification-author-img" ng-src="../{{n.author_img}}" />
+                                    </div>
+                                    <div class="col-md-10 col-sm-10 col-xs-10 author-informations" ng-if="n.action_type == 'matched'">
+                                        <span class="author-information"> <a class="author_first_name" ui-sref="show({id_user: n.id_author})" > {{n.author_first_name}} </a> vous a flasher  </span>
+                                        <span class="notification-time">{{n.created_at | timeAgo}} </span>
+                                    </div>
+                                    <div class="col-md-10 col-sm-10 col-xs-10 author-informations" ng-if="n.action_type == 'connected'">
+                                        <span class="author-information"> <a class="author_first_name" ui-sref="show({id_user: n.id_author})" > {{n.author_first_name}} </a> vous a flasher en retour </span>
+                                        <span class="notification-time">{{n.created_at | timeAgo}} </span>
+                                    </div>
+                                    <div class="col-md-10 col-sm-10 col-xs-10 author-informations" ng-if="n.action_type == 'deleted'">
+                                        <span class="author-information"> <a class="author_first_name" ui-sref="show({id_user: n.id_author})" > {{n.author_first_name}} </a> n'est plus connecter avec vous </span>
+                                        <span class="notification-time">{{n.created_at | timeAgo}} </span>
+                                    </div>
+                                    <div class="col-md-10 col-sm-10 col-xs-10 author-informations" ng-if="n.action_type == 'message'">
+                                        <span class="author-information"> <a class="author_first_name" ui-sref="show({id_user: n.id_author})" > {{n.author_first_name}} </a> vous a envoyé un message. <a class="author_first_name" ui-sref="chat({id_user: n.id_author})"> répondre</a></span>
+                                        <span class="notification-time">{{n.created_at | timeAgo}} </span>
+                                    </div>
+                                </div>
+                            </ul>
+
+                            <ul ng-show="nbNotifications == 0 && notifications.length == 0" role="menu" class="dropdown-menu menu-notification">
+                                <span>Notification Empty</span>
+                            </ul>
+                        </li>
+                        <!--
+                        <li ng-class="{active: activeTab === 'notification'}" class="nav-item link-bar">
+                            <a class="nav-link" ui-sref="notification"> <img src="../content/images/notification.png" /></a>
+                        </li> !-->
+                    </ul>
+                </div>
+                <div id="navbarCollapse" class="collapse navbar-collapse">
+                    <form role="search" class="navbar-form navbar-left">
+                        <div class="form-group search-group">
+                            <input type="text" placeholder="Rechercher ..." class="form-control search-input">
+                            <button class="btn btn-outline-success search-btn" type="submit"><img src="../content/images/magnifying.png" /></button>
+                        </div>
+                    </form>
+                    <!-- <span>425 Pts</span> !-->
+                    <div>
+                        <div class="progress progress-popularity navbar-right">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="{{user.popularity}}"
+                                 aria-valuemin="0" aria-valuemax="1000" style="width: {{user.popularity_cent}};">
+                            </div>
+                        </div>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle btn-menu" type="button" data-toggle="dropdown"><img  ng-src="{{'../'+profile}}"><span class="caret"></span></button>
+                                <ul role="menu" class="dropdown-menu menu-account">
+                                    <li ng-class="{active: activeTab === 'profile'}"><a ui-sref="profile"><img src="../content/images/user1.png"/>Consulter mon profile</a></li>
+                                    <li ng-class="{active: activeTab === 'account'}"><a ui-sref="account"><img class="option-img" src="../content/images/notepad.png"/>Completer mon profile</a></li>
+                                    <li><a href="/login" target="_self"><img class="option-img" src="../content/images/logout.png"/>Se deconnecter</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+
+    </header>
+
+    <div class="flash-message" ng-if="flash">
+        <div class="{{'alert alert-' + flash.type}}" ng-bind="flash.message">test</div>
+    </div> 
+    <!-- main -->
+    <main ui-view></main>
+
+    <!-- footer -->
+    <footer></footer>
+
+    <!-- external scripts -->
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.15/angular-ui-router.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-select/0.20.0/select.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.8/angular-sanitize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ng-tags-input/3.1.1/ng-tags-input.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/12.2.13/ng-file-upload-shim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/12.2.13/ng-file-upload.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angularjs-slider/5.8.7/rzslider.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular-moment/0.9.0/angular-moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <!-- svgAssestsCache !-->
+    <!--external module !-->
+    <!-- AIzaSyCtf7wC2AGziNsRDEUGBAXqJI6kB6NHVGw !-->
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places"></script>
+    <script src="external-modules/ngGeolocation/ngGeolocation.min.js"></script>
+    <script src="external-modules/autocomplete/autocomplete.js"></script>
+    <!-- application scripts -->
+    <script src="app.js"></script>
+    <script src="app-services/user.service.js"></script>
+    <script src="app-services/flash.service.js"></script>
+    <script src="app-services/notification.service.js"></script>
+    <script src="app-services/location.service.js"></script>
+    <script src="app-services/like.service.js"></script>
+    <script src="app-services/chat.service.js"></script>
+    <script src="app-services/socket.service.js"></script>
+    <script src="home/index.controller.js"></script>
+    <script src="account/index.controller.js"></script>
+    <script src="profile/index.controller.js"></script>
+    <script src="search/index.controller.js"></script>
+    <script src="show/index.controller.js"></script>
+    <script src="stalkers/index.controller.js"></script>
+    <script src="chat/index.controller.js"></script>
+
+
+</body>
+</html>
